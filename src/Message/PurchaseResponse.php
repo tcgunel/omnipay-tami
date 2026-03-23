@@ -10,94 +10,94 @@ use Psr\Http\Message\ResponseInterface;
 
 class PurchaseResponse extends AbstractResponse implements RedirectResponseInterface
 {
-	protected $response;
+    protected $response;
 
-	protected $request;
+    protected $request;
 
-	protected $data;
+    protected $data;
 
-	public function __construct(RequestInterface $request, $data)
-	{
-		parent::__construct($request, $data);
+    public function __construct(RequestInterface $request, $data)
+    {
+        parent::__construct($request, $data);
 
-		$this->request = $request;
-		$this->response = $data;
+        $this->request = $request;
+        $this->response = $data;
 
-		if ($data instanceof ResponseInterface) {
-			$body = (string)$data->getBody();
+        if ($data instanceof ResponseInterface) {
+            $body = (string) $data->getBody();
 
-			try {
-				$this->data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
-			} catch (JsonException $e) {
-				$this->data = [
-					'success' => false,
-					'errorMessage' => $body,
-				];
-			}
-		} elseif (is_array($data)) {
-			$this->data = $data;
-		}
-	}
+            try {
+                $this->data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+            } catch (JsonException $e) {
+                $this->data = [
+                    'success' => false,
+                    'errorMessage' => $body,
+                ];
+            }
+        } elseif (is_array($data)) {
+            $this->data = $data;
+        }
+    }
 
-	public function isSuccessful(): bool
-	{
-		if ($this->isRedirect()) {
-			return false;
-		}
+    public function isSuccessful(): bool
+    {
+        if ($this->isRedirect()) {
+            return false;
+        }
 
-		return isset($this->data['success']) && $this->data['success'] === true;
-	}
+        return isset($this->data['success']) && $this->data['success'] === true;
+    }
 
-	public function isRedirect(): bool
-	{
-		return isset($this->data['success'])
-			&& $this->data['success'] === true
-			&& isset($this->data['threeDSHtmlContent']);
-	}
+    public function isRedirect(): bool
+    {
+        return isset($this->data['success'])
+            && $this->data['success'] === true
+            && isset($this->data['threeDSHtmlContent']);
+    }
 
-	public function getRedirectUrl()
-	{
-		return null;
-	}
+    public function getRedirectUrl()
+    {
+        return null;
+    }
 
-	public function getRedirectMethod(): string
-	{
-		return 'POST';
-	}
+    public function getRedirectMethod(): string
+    {
+        return 'POST';
+    }
 
-	public function getRedirectData()
-	{
-		if ($this->isRedirect()) {
-			return $this->data;
-		}
+    public function getRedirectData()
+    {
+        if ($this->isRedirect()) {
+            return $this->data;
+        }
 
-		return null;
-	}
+        return null;
+    }
 
-	/**
-	 * Get the decoded 3DS HTML content for redirect.
-	 */
-	public function getRedirectHtml(): ?string
-	{
-		if (isset($this->data['threeDSHtmlContent'])) {
-			return base64_decode($this->data['threeDSHtmlContent']);
-		}
+    /**
+     * Get the decoded 3DS HTML content for redirect.
+     */
+    public function getRedirectHtml(): ?string
+    {
+        if (isset($this->data['threeDSHtmlContent'])) {
+            return base64_decode($this->data['threeDSHtmlContent']);
+        }
 
-		return null;
-	}
+        return null;
+    }
 
-	public function getMessage(): ?string
-	{
-		return $this->data['errorMessage'] ?? null;
-	}
+    public function getMessage(): ?string
+    {
+        return $this->data['errorMessage'] ?? null;
+    }
 
-	public function getTransactionReference(): ?string
-	{
-		return $this->data['bankReferenceNumber'] ?? null;
-	}
+    public function getTransactionReference(): ?string
+    {
+        return $this->data['bankReferenceNumber'] ?? null;
+    }
 
-	public function getData(): ?array
-	{
-		return $this->data;
-	}
+    public function getData(): ?array
+    {
+        return $this->data;
+    }
 }

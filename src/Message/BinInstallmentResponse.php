@@ -9,65 +9,65 @@ use Psr\Http\Message\ResponseInterface;
 
 class BinInstallmentResponse extends AbstractResponse
 {
-	protected $response;
+    protected $response;
 
-	protected $request;
+    protected $request;
 
-	protected $data;
+    protected $data;
 
-	public function __construct(RequestInterface $request, $data)
-	{
-		parent::__construct($request, $data);
+    public function __construct(RequestInterface $request, $data)
+    {
+        parent::__construct($request, $data);
 
-		$this->request = $request;
-		$this->response = $data;
+        $this->request = $request;
+        $this->response = $data;
 
-		if ($data instanceof ResponseInterface) {
-			$body = (string)$data->getBody();
+        if ($data instanceof ResponseInterface) {
+            $body = (string) $data->getBody();
 
-			try {
-				$this->data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
-			} catch (JsonException $e) {
-				$this->data = [
-					'success' => false,
-					'errorMessage' => $body,
-				];
-			}
-		} elseif (is_array($data)) {
-			$this->data = $data;
-		}
-	}
+            try {
+                $this->data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+            } catch (JsonException $e) {
+                $this->data = [
+                    'success' => false,
+                    'errorMessage' => $body,
+                ];
+            }
+        } elseif (is_array($data)) {
+            $this->data = $data;
+        }
+    }
 
-	public function isSuccessful(): bool
-	{
-		return isset($this->data['success'])
-			&& $this->data['success'] === true
-			&& isset($this->data['isInstallment'])
-			&& $this->data['isInstallment'] === true;
-	}
+    public function isSuccessful(): bool
+    {
+        return isset($this->data['success'])
+            && $this->data['success'] === true
+            && isset($this->data['isInstallment'])
+            && $this->data['isInstallment'] === true;
+    }
 
-	public function getInstallments(): ?array
-	{
-		return $this->data['installments'] ?? null;
-	}
+    public function getInstallments(): ?array
+    {
+        return $this->data['installments'] ?? null;
+    }
 
-	public function getMessage(): ?string
-	{
-		return $this->data['errorMessage'] ?? null;
-	}
+    public function getMessage(): ?string
+    {
+        return $this->data['errorMessage'] ?? null;
+    }
 
-	public function getData(): ?array
-	{
-		return $this->data;
-	}
+    public function getData(): ?array
+    {
+        return $this->data;
+    }
 
-	public function getRedirectData()
-	{
-		return null;
-	}
+    public function getRedirectData()
+    {
+        return null;
+    }
 
-	public function getRedirectUrl(): string
-	{
-		return '';
-	}
+    public function getRedirectUrl(): string
+    {
+        return '';
+    }
 }

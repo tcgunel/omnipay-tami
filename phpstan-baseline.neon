@@ -1,0 +1,46 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Access to an undefined property Omnipay\\\\Tami\\\\Gateway\\:\\:\\$endpoint\\.$#"
+			count: 1
+			path: src/Gateway.php
+
+		-
+			message: "#^Method Omnipay\\\\Tami\\\\Message\\\\BinInstallmentResponse\\:\\:getRedirectData\\(\\) should return array but returns null\\.$#"
+			count: 1
+			path: src/Message/BinInstallmentResponse.php
+
+		-
+			message: "#^Method Omnipay\\\\Tami\\\\Message\\\\CancelResponse\\:\\:getRedirectData\\(\\) should return array but returns null\\.$#"
+			count: 1
+			path: src/Message/CancelResponse.php
+
+		-
+			message: "#^Method Omnipay\\\\Tami\\\\Message\\\\CompletePurchaseResponse\\:\\:getRedirectData\\(\\) should return array but returns null\\.$#"
+			count: 1
+			path: src/Message/CompletePurchaseResponse.php
+
+		-
+			message: "#^Expression on left side of \\?\\? is not nullable\\.$#"
+			count: 2
+			path: src/Message/PurchaseRequest.php
+
+		-
+			message: "#^Method Omnipay\\\\Tami\\\\Message\\\\PurchaseResponse\\:\\:getRedirectData\\(\\) should return array but returns null\\.$#"
+			count: 1
+			path: src/Message/PurchaseResponse.php
+
+		-
+			message: "#^Method Omnipay\\\\Tami\\\\Message\\\\PurchaseResponse\\:\\:getRedirectUrl\\(\\) should return string but returns null\\.$#"
+			count: 1
+			path: src/Message/PurchaseResponse.php
+
+		-
+			message: "#^Method Omnipay\\\\Tami\\\\Message\\\\RefundResponse\\:\\:getRedirectData\\(\\) should return array but returns null\\.$#"
+			count: 1
+			path: src/Message/RefundResponse.php
+
+		-
+			message: "#^Ternary operator condition is always true\\.$#"
+			count: 1
+			path: src/Message/RemoteAbstractRequest.php

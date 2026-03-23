@@ -7,47 +7,47 @@ use Omnipay\Tami\Helpers\TamiHelper;
 
 class CancelRequest extends RemoteAbstractRequest
 {
-	protected $endpoint = '/payment/reverse';
+    protected $endpoint = '/payment/reverse';
 
-	/**
-	 * @throws InvalidRequestException
-	 */
-	public function getData(): array
-	{
-		$this->validateAll();
+    /**
+     * @throws InvalidRequestException
+     */
+    public function getData(): array
+    {
+        $this->validateAll();
 
-		$data = [
-			'orderId' => $this->getTransactionId(),
-		];
+        $data = [
+            'orderId' => $this->getTransactionId(),
+        ];
 
-		$securityHash = TamiHelper::generateJwkSignature($this->getMerchantPassword(), $data);
+        $securityHash = TamiHelper::generateJwkSignature($this->getMerchantPassword(), $data);
 
-		$data['securityHash'] = $securityHash;
+        $data['securityHash'] = $securityHash;
 
-		return $data;
-	}
+        return $data;
+    }
 
-	/**
-	 * @throws InvalidRequestException
-	 */
-	protected function validateAll(): void
-	{
-		$this->validateSettings();
+    /**
+     * @throws InvalidRequestException
+     */
+    protected function validateAll(): void
+    {
+        $this->validateSettings();
 
-		$this->validate('transactionId');
-	}
+        $this->validate('transactionId');
+    }
 
-	public function sendData($data)
-	{
-		$url = $this->getBaseUrl() . $this->endpoint;
+    public function sendData($data)
+    {
+        $url = $this->getBaseUrl() . $this->endpoint;
 
-		$httpResponse = $this->sendJsonRequest($url, $data);
+        $httpResponse = $this->sendJsonRequest($url, $data);
 
-		return $this->createResponse($httpResponse);
-	}
+        return $this->createResponse($httpResponse);
+    }
 
-	protected function createResponse($data): CancelResponse
-	{
-		return $this->response = new CancelResponse($this, $data);
-	}
+    protected function createResponse($data): CancelResponse
+    {
+        return $this->response = new CancelResponse($this, $data);
+    }
 }

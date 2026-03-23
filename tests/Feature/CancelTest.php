@@ -9,57 +9,57 @@ use Omnipay\Tami\Tests\TestCase;
 
 class CancelTest extends TestCase
 {
-	public function test_cancel_request()
-	{
-		$options = file_get_contents(__DIR__ . "/../Mock/CancelRequest.json");
+    public function test_cancel_request()
+    {
+        $options = file_get_contents(__DIR__ . '/../Mock/CancelRequest.json');
 
-		$options = json_decode($options, true, 512, JSON_THROW_ON_ERROR);
+        $options = json_decode($options, true, 512, JSON_THROW_ON_ERROR);
 
-		$request = new CancelRequest($this->getHttpClient(), $this->getHttpRequest());
+        $request = new CancelRequest($this->getHttpClient(), $this->getHttpRequest());
 
-		$request->initialize($options);
+        $request->initialize($options);
 
-		$data = $request->getData();
+        $data = $request->getData();
 
-		self::assertIsArray($data);
-		self::assertEquals('ORDER-123456', $data['orderId']);
-		self::assertArrayHasKey('securityHash', $data);
-		self::assertNotEmpty($data['securityHash']);
-		self::assertArrayNotHasKey('amount', $data);
-	}
+        self::assertIsArray($data);
+        self::assertEquals('ORDER-123456', $data['orderId']);
+        self::assertArrayHasKey('securityHash', $data);
+        self::assertNotEmpty($data['securityHash']);
+        self::assertArrayNotHasKey('amount', $data);
+    }
 
-	public function test_cancel_request_validation_error()
-	{
-		$options = file_get_contents(__DIR__ . "/../Mock/CancelRequest-ValidationError.json");
+    public function test_cancel_request_validation_error()
+    {
+        $options = file_get_contents(__DIR__ . '/../Mock/CancelRequest-ValidationError.json');
 
-		$options = json_decode($options, true, 512, JSON_THROW_ON_ERROR);
+        $options = json_decode($options, true, 512, JSON_THROW_ON_ERROR);
 
-		$request = new CancelRequest($this->getHttpClient(), $this->getHttpRequest());
+        $request = new CancelRequest($this->getHttpClient(), $this->getHttpRequest());
 
-		$request->initialize($options);
+        $request->initialize($options);
 
-		$this->expectException(InvalidRequestException::class);
+        $this->expectException(InvalidRequestException::class);
 
-		$request->getData();
-	}
+        $request->getData();
+    }
 
-	public function test_cancel_response_success()
-	{
-		$httpResponse = $this->getMockHttpResponse('CancelResponseSuccess.txt');
+    public function test_cancel_response_success()
+    {
+        $httpResponse = $this->getMockHttpResponse('CancelResponseSuccess.txt');
 
-		$response = new CancelResponse($this->getMockRequest(), $httpResponse);
+        $response = new CancelResponse($this->getMockRequest(), $httpResponse);
 
-		$this->assertTrue($response->isSuccessful());
-		$this->assertNull($response->getMessage());
-	}
+        $this->assertTrue($response->isSuccessful());
+        $this->assertNull($response->getMessage());
+    }
 
-	public function test_cancel_response_api_error()
-	{
-		$httpResponse = $this->getMockHttpResponse('CancelResponseApiError.txt');
+    public function test_cancel_response_api_error()
+    {
+        $httpResponse = $this->getMockHttpResponse('CancelResponseApiError.txt');
 
-		$response = new CancelResponse($this->getMockRequest(), $httpResponse);
+        $response = new CancelResponse($this->getMockRequest(), $httpResponse);
 
-		$this->assertFalse($response->isSuccessful());
-		$this->assertEquals('Islem iptal edilemedi', $response->getMessage());
-	}
+        $this->assertFalse($response->isSuccessful());
+        $this->assertEquals('Islem iptal edilemedi', $response->getMessage());
+    }
 }
