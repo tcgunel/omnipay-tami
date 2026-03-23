@@ -1,0 +1,9 @@
+{
+  "merchantId": "testMerchantId",
+  "merchantUser": "testMerchantUser",
+  "merchantStorekey": "testStoreKey",
+  "merchantPassword": "testKid|dGVzdEtleVZhbHVl",
+  "transactionId": "ORDER-123456",
+  "amount": "50.00",
+  "testMode": true
+}

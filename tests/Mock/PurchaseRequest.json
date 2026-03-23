@@ -1,0 +1,32 @@
+{
+  "merchantId": "testMerchantId",
+  "merchantUser": "testMerchantUser",
+  "merchantStorekey": "testStoreKey",
+  "merchantPassword": "testKid|dGVzdEtleVZhbHVl",
+  "transactionId": "ORDER-123456",
+  "amount": "100.00",
+  "currency": "TRY",
+  "installment": 1,
+  "testMode": true,
+  "card": {
+    "firstName": "Example",
+    "lastName": "User",
+    "number": "4155650100416111",
+    "expiryMonth": "01",
+    "expiryYear": "2030",
+    "cvv": "123",
+    "billingAddress1": "123 Billing St",
+    "billingCity": "Istanbul",
+    "billingPostcode": "34000",
+    "billingCountry": "TR",
+    "billingPhone": "5554443322",
+    "email": "test@example.com",
+    "shippingAddress1": "123 Shipping St",
+    "shippingCity": "Istanbul",
+    "shippingPostcode": "34000",
+    "shippingCountry": "TR",
+    "shippingPhone": "5554443322"
+  },
+  "clientIp": "127.0.0.1",
+  "secure": false
+}

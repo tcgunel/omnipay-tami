@@ -1,0 +1,6 @@
+HTTP/1.1 200 OK
+Server: nginx
+Content-Type: application/json
+Content-Length: 200
+
+{"success":true,"threeDSHtmlContent":"PGh0bWw+PGJvZHk+M0QgU2VjdXJlIFJlZGlyZWN0PC9ib2R5PjwvaHRtbD4=","orderId":"ORDER-123456"}

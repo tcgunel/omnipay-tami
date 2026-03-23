@@ -1,0 +1,6 @@
+HTTP/1.1 200 OK
+Server: nginx
+Content-Type: application/json
+Content-Length: 100
+
+{"success":false,"errorMessage":"Kart numarasi hatali"}

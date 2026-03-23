@@ -1,0 +1,55 @@
+{
+    "name": "tcgunel/omnipay-tami",
+    "type": "library",
+    "description": "Omnipay extension for Tami Payment Gateway",
+    "keywords": [
+        "tami",
+        "omnipay",
+        "payment",
+        "gateway",
+        "3d secure",
+        "sanal pos"
+    ],
+    "homepage": "https://github.com/tcgunel/omnipay-tami",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Tolga Can Günel",
+            "email": "tlgcngnl@gmail.com"
+        },
+        {
+            "name": "Omnipay Contributors",
+            "homepage": "https://github.com/tcgunel/omnipay-tami/contributors"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Omnipay\\Tami\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Omnipay\\Tami\\Tests\\": "tests"
+        }
+    },
+    "require": {
+        "php": "^8.0",
+        "league/omnipay": "^3",
+        "ext-json": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9",
+        "omnipay/tests": "^4",
+        "brianium/paratest": "*",
+        "fzaninotto/faker": "*",
+        "laravel/pint": "^1.0",
+        "phpstan/phpstan": "^1.0"
+    },
+    "scripts": {
+        "test": "vendor/bin/paratest --processes 6",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage",
+        "analyse": "vendor/bin/phpstan analyse",
+        "lint": "vendor/bin/pint",
+        "lint-check": "vendor/bin/pint --test"
+    }
+}
