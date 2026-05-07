@@ -8,6 +8,7 @@ use Omnipay\Tami\Message\BinInstallmentRequest;
 use Omnipay\Tami\Message\BinRequest;
 use Omnipay\Tami\Message\CancelRequest;
 use Omnipay\Tami\Message\CompletePurchaseRequest;
+use Omnipay\Tami\Message\Notification;
 use Omnipay\Tami\Message\PurchaseRequest;
 use Omnipay\Tami\Message\QueryRequest;
 use Omnipay\Tami\Message\RefundRequest;
@@ -18,7 +19,6 @@ use Omnipay\Tami\Traits\GettersSettersTrait;
  * (c) Tolga Can Gunel
  * 2015, mobius.studio
  * http://www.github.com/tcgunel/omnipay-tami
- * @method \Omnipay\Common\Message\NotificationInterface acceptNotification(array $options = [])
  * @method \Omnipay\Common\Message\RequestInterface completeAuthorize(array $options = [])
  */
 class Gateway extends AbstractGateway
@@ -77,5 +77,17 @@ class Gateway extends AbstractGateway
     public function query(array $options = []): AbstractRequest
     {
         return $this->createRequest(QueryRequest::class, $options);
+    }
+
+    /**
+     * Wrap an incoming 3DS callbackUrl POST in a Notification that hides the
+     * documented-vs-production quirks (success "1"/"true", hashParams field,
+     * mdErrorMessage location, etc).
+     *
+     * @param array<string, mixed> $data
+     */
+    public function acceptNotification(array $data = []): Notification
+    {
+        return new Notification($data);
     }
 }
