@@ -1,0 +1,6 @@
+HTTP/1.1 200 OK
+Server: nginx
+Content-Type: application/json
+Content-Length: 220
+
+{"success":true,"bankName":"PLACEHOLDER BANK","bankId":"62","cardType":"CREDIT","cardOrg":"VISA","commercial":false,"rewardType":"BONUS","systemTime":"2026-01-01T10:00:00.000","correlationId":"CorrelationXYZ","securityHash":"placeholder-hash"}

@@ -28,6 +28,21 @@ class CancelTest extends TestCase
         self::assertArrayNotHasKey('amount', $data);
     }
 
+    public function test_cancel_request_supports_partial_amount_and_reason()
+    {
+        $options = json_decode(file_get_contents(__DIR__ . '/../Mock/CancelRequest.json'), true, 512, JSON_THROW_ON_ERROR);
+        $options['amount'] = '12.50';
+        $options['description'] = 'customer change of mind';
+
+        $request = new CancelRequest($this->getHttpClient(), $this->getHttpRequest());
+        $request->initialize($options);
+
+        $data = $request->getData();
+
+        self::assertEquals(12.5, $data['amount']);
+        self::assertEquals('customer change of mind', $data['reason']);
+    }
+
     public function test_cancel_request_validation_error()
     {
         $options = file_get_contents(__DIR__ . '/../Mock/CancelRequest-ValidationError.json');

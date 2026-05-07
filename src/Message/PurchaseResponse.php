@@ -7,6 +7,7 @@ use Omnipay\Common\Message\AbstractResponse;
 use Omnipay\Common\Message\RedirectResponseInterface;
 use Omnipay\Common\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 class PurchaseResponse extends AbstractResponse implements RedirectResponseInterface
 {
@@ -84,6 +85,20 @@ class PurchaseResponse extends AbstractResponse implements RedirectResponseInter
         }
 
         return null;
+    }
+
+    /**
+     * Tami returns ready-to-render HTML rather than a URL to redirect to. The
+     * default Omnipay form-builder is useless here, so override and return the
+     * decoded bank-side HTML directly.
+     */
+    public function getRedirectResponse()
+    {
+        if (! $this->isRedirect()) {
+            throw new \Omnipay\Common\Exception\RuntimeException('This response does not support redirection.');
+        }
+
+        return new HttpResponse((string) $this->getRedirectHtml());
     }
 
     public function getMessage(): ?string

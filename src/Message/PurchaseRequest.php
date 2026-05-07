@@ -26,7 +26,7 @@ class PurchaseRequest extends RemoteAbstractRequest
             'orderId' => $this->getTransactionId(),
             'currency' => $this->getCurrency() ?? 'TRY',
             'installmentCount' => $installment,
-            'paymentGroup' => $this->getPaymentGroup() ?? 'OTHER',
+            'paymentGroup' => $this->getPaymentGroup() ?? 'PRODUCT',
             'card' => [
                 'holderName' => $this->get_card('getName'),
                 'cvv' => $this->get_card('getCvv'),
@@ -35,11 +35,10 @@ class PurchaseRequest extends RemoteAbstractRequest
                 'expireYear' => $this->get_card('getExpiryYear'),
             ],
             'buyer' => $this->getBuyer() ?? [
-                'buyerId' => '',
+                'buyerId' => $this->getTransactionId(),
                 'ipAddress' => $this->getClientIp() ?? '127.0.0.1',
                 'name' => $this->get_card('getFirstName') ?? '',
                 'surName' => $this->get_card('getLastName') ?? '',
-                'identityNumber' => '',
                 'city' => $this->get_card('getBillingCity') ?? '',
                 'country' => $this->get_card('getBillingCountry') ?? 'TR',
                 'zipCode' => $this->get_card('getBillingPostcode') ?? '',

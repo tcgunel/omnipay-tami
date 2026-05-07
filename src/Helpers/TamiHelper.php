@@ -6,7 +6,7 @@ class TamiHelper
 {
     /**
      * Generate PG-Auth-Token header value.
-     * Format: merchantId:merchantUser:sha256(merchantId + merchantUser + merchantStorekey)
+     * Format: merchantId:merchantUser:base64(sha256_raw(merchantId + merchantUser + merchantStorekey))
      */
     public static function generateAuthToken(string $merchantId, string $merchantUser, string $merchantStorekey): string
     {
@@ -16,43 +16,87 @@ class TamiHelper
     }
 
     /**
-     * Generate JWK Signature (JWT-like) for request body.
+     * Generate JWS Compact Serialization for the request body to be sent in the
+     * `securityHash` field. RFC 7515 / 7518: header.payload.signature, base64url, no padding.
      *
-     * merchantPassword format: "kid|kValue" where kValue is base64url encoded HMAC key.
-     *
-     * @param string $merchantPassword Format: "kid|kValue"
-     * @param array $requestBody
-     * @return string JWT-like signature: header.payload.signature
+     * merchantPassword format: "kid|kValue" where kValue is the base64url-encoded JWK "k".
      */
     public static function generateJwkSignature(string $merchantPassword, array $requestBody): string
     {
         $parts = explode('|', $merchantPassword);
 
-        $kidValue = $parts[0];
+        $kid = $parts[0];
         $kValue = count($parts) > 1 ? $parts[1] : $parts[0];
 
         $bodyJson = json_encode($requestBody, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-        $headerObj = [
+        $headerJson = json_encode([
             'alg' => 'HS512',
             'typ' => 'JWT',
-            'kidValue' => $kidValue,
-        ];
+            'kid' => $kid,
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-        $headerB64 = base64_encode(json_encode($headerObj, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-        $payloadB64 = base64_encode($bodyJson);
+        $headerB64 = self::base64UrlEncode($headerJson);
+        $payloadB64 = self::base64UrlEncode($bodyJson);
 
         $signingInput = $headerB64 . '.' . $payloadB64;
 
         $key = base64_decode(self::base64UrlNormalize($kValue));
 
-        $signatureB64 = base64_encode(hash_hmac('sha512', $signingInput, $key, true));
+        $signatureB64 = self::base64UrlEncode(hash_hmac('sha512', $signingInput, $key, true));
 
         return $headerB64 . '.' . $payloadB64 . '.' . $signatureB64;
     }
 
     /**
-     * Normalize base64url to standard base64.
+     * Verify the `hashedData` Tami posts back to the merchant's 3DS callbackUrl.
+     *
+     * data = cardOrg + cardBrand + cardType + maskedNumber + installmentCount
+     *      + currency + originalAmount + orderID + systemTime + status
+     * hashedData = base64(HMAC-SHA256(secretKey, data))
+     */
+    public static function verifyCallbackHash(array $callback, string $secretKey): bool
+    {
+        $expected = self::computeCallbackHash($callback, $secretKey);
+        $received = (string) ($callback['hashedData'] ?? '');
+
+        if ($expected === '' || $received === '') {
+            return false;
+        }
+
+        return hash_equals($expected, $received);
+    }
+
+    /**
+     * Compute the expected `hashedData` value for a 3DS callback payload.
+     */
+    public static function computeCallbackHash(array $callback, string $secretKey): string
+    {
+        $data = ($callback['cardOrganization'] ?? $callback['cardOrg'] ?? '')
+            . ($callback['cardBrand'] ?? '')
+            . ($callback['cardType'] ?? '')
+            . ($callback['maskedNumber'] ?? '')
+            . ($callback['installmentCount'] ?? '')
+            . ($callback['currency'] ?? $callback['currencyCode'] ?? '')
+            . ($callback['originalAmount'] ?? $callback['txnAmount'] ?? '')
+            . ($callback['orderId'] ?? $callback['orderID'] ?? '')
+            . ($callback['systemTime'] ?? '')
+            . ($callback['status'] ?? $callback['mdStatus'] ?? '');
+
+        return base64_encode(hash_hmac('sha256', $data, $secretKey, true));
+    }
+
+    /**
+     * Base64url encode (RFC 4648 §5) — no padding, '+' → '-', '/' → '_'.
+     */
+    public static function base64UrlEncode(string $input): string
+    {
+        return rtrim(strtr(base64_encode($input), '+/', '-_'), '=');
+    }
+
+    /**
+     * Convert a base64url string to standard base64 (with padding) so PHP's
+     * native base64_decode can consume it.
      */
     public static function base64UrlNormalize(string $base64Url): string
     {

@@ -20,6 +20,14 @@ class CancelRequest extends RemoteAbstractRequest
             'orderId' => $this->getTransactionId(),
         ];
 
+        if (($amount = $this->getAmount()) !== null) {
+            $data['amount'] = round((float) $amount, 2);
+        }
+
+        if ($reason = $this->getDescription()) {
+            $data['reason'] = mb_substr((string) $reason, 0, 150);
+        }
+
         $securityHash = TamiHelper::generateJwkSignature($this->getMerchantPassword(), $data);
 
         $data['securityHash'] = $securityHash;

@@ -20,7 +20,7 @@ class HelperTest extends TestCase
         self::assertNotEmpty($parts[2]);
     }
 
-    public function test_generate_jwk_signature()
+    public function test_generate_jwk_signature_uses_base64url_and_kid_header()
     {
         $password = 'testKid|dGVzdEtleVZhbHVl';
         $body = ['orderId' => 'TEST-001'];
@@ -30,12 +30,17 @@ class HelperTest extends TestCase
         $parts = explode('.', $signature);
         self::assertCount(3, $parts);
 
-        $header = json_decode(base64_decode($parts[0]), true);
+        foreach ($parts as $part) {
+            self::assertMatchesRegularExpression('/^[A-Za-z0-9_-]+$/', $part, 'JWT components must be base64url with no padding');
+        }
+
+        $header = json_decode(base64_decode(TamiHelper::base64UrlNormalize($parts[0])), true);
         self::assertEquals('HS512', $header['alg']);
         self::assertEquals('JWT', $header['typ']);
-        self::assertEquals('testKid', $header['kidValue']);
+        self::assertEquals('testKid', $header['kid']);
+        self::assertArrayNotHasKey('kidValue', $header);
 
-        $payload = json_decode(base64_decode($parts[1]), true);
+        $payload = json_decode(base64_decode(TamiHelper::base64UrlNormalize($parts[1])), true);
         self::assertEquals('TEST-001', $payload['orderId']);
     }
 
@@ -49,8 +54,41 @@ class HelperTest extends TestCase
         $parts = explode('.', $signature);
         self::assertCount(3, $parts);
 
-        $header = json_decode(base64_decode($parts[0]), true);
-        self::assertEquals('dGVzdEtleVZhbHVl', $header['kidValue']);
+        $header = json_decode(base64_decode(TamiHelper::base64UrlNormalize($parts[0])), true);
+        self::assertEquals('dGVzdEtleVZhbHVl', $header['kid']);
+    }
+
+    public function test_generate_jwk_signature_matches_known_vector()
+    {
+        // Cross-checked against a Node.js `jose.SignJWT` run with the same key
+        // and payload to lock the wire format.
+        $password = 'sample-kid|c2VjcmV0LWtleS1tYXRlcmlhbA';
+        $body = ['orderId' => 'ORDER-1', 'amount' => 1];
+
+        $signature = TamiHelper::generateJwkSignature($password, $body);
+
+        [$headerB64, $payloadB64, $signatureB64] = explode('.', $signature);
+
+        $headerJson = json_encode(['alg' => 'HS512', 'typ' => 'JWT', 'kid' => 'sample-kid'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $payloadJson = json_encode($body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $expectedHeaderB64 = TamiHelper::base64UrlEncode($headerJson);
+        $expectedPayloadB64 = TamiHelper::base64UrlEncode($payloadJson);
+        $expectedSig = TamiHelper::base64UrlEncode(
+            hash_hmac('sha512', $expectedHeaderB64 . '.' . $expectedPayloadB64, base64_decode(TamiHelper::base64UrlNormalize('c2VjcmV0LWtleS1tYXRlcmlhbA')), true)
+        );
+
+        self::assertEquals($expectedHeaderB64, $headerB64);
+        self::assertEquals($expectedPayloadB64, $payloadB64);
+        self::assertEquals($expectedSig, $signatureB64);
+    }
+
+    public function test_base64_url_encode_strips_padding_and_swaps_alphabet()
+    {
+        // Standard base64 of "ab+c/d" rendered as base64url.
+        self::assertEquals('YWIrYy9k', TamiHelper::base64UrlEncode('ab+c/d'));
+
+        // Bytes that produce '+' and '/' in standard base64.
+        self::assertEquals('-_8', TamiHelper::base64UrlEncode("\xfb\xff"));
     }
 
     public function test_base64_url_normalize()
@@ -58,5 +96,34 @@ class HelperTest extends TestCase
         self::assertEquals('ab+c/d==', TamiHelper::base64UrlNormalize('ab-c_d'));
         self::assertEquals('abc=', TamiHelper::base64UrlNormalize('abc'));
         self::assertEquals('abcd', TamiHelper::base64UrlNormalize('abcd'));
+    }
+
+    public function test_verify_callback_hash_round_trip()
+    {
+        $secretKey = 'placeholder-secret';
+        $callback = [
+            'cardOrganization' => 'VISA',
+            'cardBrand' => 'BONUS',
+            'cardType' => 'CREDIT',
+            'maskedNumber' => '482491******7014',
+            'installmentCount' => 1,
+            'currency' => 'TRY',
+            'originalAmount' => 415,
+            'orderId' => 'order-123',
+            'systemTime' => '2026-01-01T00:00:00.000',
+            'mdStatus' => '1',
+        ];
+
+        $callback['hashedData'] = TamiHelper::computeCallbackHash($callback, $secretKey);
+
+        self::assertTrue(TamiHelper::verifyCallbackHash($callback, $secretKey));
+
+        $callback['hashedData'] = 'tampered';
+        self::assertFalse(TamiHelper::verifyCallbackHash($callback, $secretKey));
+    }
+
+    public function test_verify_callback_hash_fails_on_missing_field()
+    {
+        self::assertFalse(TamiHelper::verifyCallbackHash([], 'placeholder-secret'));
     }
 }

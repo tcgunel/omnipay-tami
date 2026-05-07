@@ -26,11 +26,12 @@ class PurchaseTest extends TestCase
         self::assertEquals('ORDER-123456', $data['orderId']);
         self::assertEquals('TRY', $data['currency']);
         self::assertEquals(1, $data['installmentCount']);
-        self::assertEquals('OTHER', $data['paymentGroup']);
+        self::assertEquals('PRODUCT', $data['paymentGroup']);
         self::assertArrayHasKey('card', $data);
         self::assertEquals('4155650100416111', $data['card']['number']);
         self::assertEquals('123', $data['card']['cvv']);
         self::assertArrayHasKey('buyer', $data);
+        self::assertEquals('ORDER-123456', $data['buyer']['buyerId']);
         self::assertArrayHasKey('shippingAddress', $data);
         self::assertArrayHasKey('billingAddress', $data);
         self::assertArrayHasKey('securityHash', $data);
@@ -104,5 +105,8 @@ class PurchaseTest extends TestCase
         $this->assertTrue($response->isRedirect());
         $this->assertNotNull($response->getRedirectHtml());
         $this->assertStringContainsString('3D Secure Redirect', $response->getRedirectHtml());
+
+        $http = $response->getRedirectResponse();
+        $this->assertSame($response->getRedirectHtml(), $http->getContent());
     }
 }

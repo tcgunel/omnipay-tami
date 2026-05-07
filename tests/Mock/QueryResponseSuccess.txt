@@ -1,0 +1,6 @@
+HTTP/1.1 200 OK
+Server: nginx
+Content-Type: application/json
+Content-Length: 360
+
+{"success":true,"systemTime":"2026-01-01T10:00:00.000","correlationId":"CorrelationABC","orderId":"ORDER-123456","amount":415,"orderDate":"2026-01-01T09:00:00.000","currency":"TRY","installmentCount":1,"orderStatus":"AUTH","paymentStatus":"SUCCESS","card":{"binNumber":"48249105","cardBrand":"BONUS","cardOrganization":"VISA","cardType":"CREDIT"},"transactions":[{"amount":415,"transactionType":"AUTH","transactionStatus":"SUCCESS","transactionDate":"2026-01-01T09:00:00.000","bankAuthCode":"123456","bankReferenceNumber":"522104300000"}]}

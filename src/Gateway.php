@@ -5,9 +5,11 @@ namespace Omnipay\Tami;
 use Omnipay\Common\AbstractGateway;
 use Omnipay\Common\Message\AbstractRequest;
 use Omnipay\Tami\Message\BinInstallmentRequest;
+use Omnipay\Tami\Message\BinRequest;
 use Omnipay\Tami\Message\CancelRequest;
 use Omnipay\Tami\Message\CompletePurchaseRequest;
 use Omnipay\Tami\Message\PurchaseRequest;
+use Omnipay\Tami\Message\QueryRequest;
 use Omnipay\Tami\Message\RefundRequest;
 use Omnipay\Tami\Traits\GettersSettersTrait;
 
@@ -65,5 +67,15 @@ class Gateway extends AbstractGateway
     public function binInstallment(array $options = []): AbstractRequest
     {
         return $this->createRequest(BinInstallmentRequest::class, $options);
+    }
+
+    public function bin(array $options = []): AbstractRequest
+    {
+        return $this->createRequest(BinRequest::class, $options);
+    }
+
+    public function query(array $options = []): AbstractRequest
+    {
+        return $this->createRequest(QueryRequest::class, $options);
     }
 }

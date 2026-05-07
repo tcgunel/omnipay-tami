@@ -5,9 +5,9 @@ namespace Omnipay\Tami\Message;
 use Omnipay\Common\Exception\InvalidRequestException;
 use Omnipay\Tami\Helpers\TamiHelper;
 
-class RefundRequest extends RemoteAbstractRequest
+class BinRequest extends RemoteAbstractRequest
 {
-    protected $endpoint = '/payment/reverse';
+    protected $endpoint = '/installment/bin-info';
 
     /**
      * @throws InvalidRequestException
@@ -17,17 +17,10 @@ class RefundRequest extends RemoteAbstractRequest
         $this->validateAll();
 
         $data = [
-            'orderId' => $this->getTransactionId(),
-            'amount' => round((float) $this->getAmount(), 2),
+            'binNumber' => $this->getBinNumber(),
         ];
 
-        if ($reason = $this->getDescription()) {
-            $data['reason'] = mb_substr((string) $reason, 0, 150);
-        }
-
-        $securityHash = TamiHelper::generateJwkSignature($this->getMerchantPassword(), $data);
-
-        $data['securityHash'] = $securityHash;
+        $data['securityHash'] = TamiHelper::generateJwkSignature($this->getMerchantPassword(), $data);
 
         return $data;
     }
@@ -39,7 +32,7 @@ class RefundRequest extends RemoteAbstractRequest
     {
         $this->validateSettings();
 
-        $this->validate('transactionId', 'amount');
+        $this->validate('binNumber');
     }
 
     public function sendData($data)
@@ -51,8 +44,8 @@ class RefundRequest extends RemoteAbstractRequest
         return $this->createResponse($httpResponse);
     }
 
-    protected function createResponse($data): RefundResponse
+    protected function createResponse($data): BinResponse
     {
-        return $this->response = new RefundResponse($this, $data);
+        return $this->response = new BinResponse($this, $data);
     }
 }

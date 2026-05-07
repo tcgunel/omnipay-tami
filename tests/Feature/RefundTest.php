@@ -28,6 +28,20 @@ class RefundTest extends TestCase
         self::assertNotEmpty($data['securityHash']);
     }
 
+    public function test_refund_request_includes_reason_when_set()
+    {
+        $options = json_decode(file_get_contents(__DIR__ . '/../Mock/RefundRequest.json'), true, 512, JSON_THROW_ON_ERROR);
+        $options['description'] = str_repeat('x', 200);
+
+        $request = new RefundRequest($this->getHttpClient(), $this->getHttpRequest());
+        $request->initialize($options);
+
+        $data = $request->getData();
+
+        self::assertArrayHasKey('reason', $data);
+        self::assertEquals(150, mb_strlen($data['reason']));
+    }
+
     public function test_refund_request_validation_error()
     {
         $options = file_get_contents(__DIR__ . '/../Mock/RefundRequest-ValidationError.json');

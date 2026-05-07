@@ -5,9 +5,19 @@ namespace Omnipay\Tami\Message;
 use Omnipay\Common\Exception\InvalidRequestException;
 use Omnipay\Tami\Helpers\TamiHelper;
 
-class RefundRequest extends RemoteAbstractRequest
+class QueryRequest extends RemoteAbstractRequest
 {
-    protected $endpoint = '/payment/reverse';
+    protected $endpoint = '/payment/query';
+
+    public function getIsTransactionDetail()
+    {
+        return $this->getParameter('isTransactionDetail');
+    }
+
+    public function setIsTransactionDetail($value)
+    {
+        return $this->setParameter('isTransactionDetail', $value);
+    }
 
     /**
      * @throws InvalidRequestException
@@ -18,16 +28,13 @@ class RefundRequest extends RemoteAbstractRequest
 
         $data = [
             'orderId' => $this->getTransactionId(),
-            'amount' => round((float) $this->getAmount(), 2),
         ];
 
-        if ($reason = $this->getDescription()) {
-            $data['reason'] = mb_substr((string) $reason, 0, 150);
+        if ($this->getIsTransactionDetail() !== null) {
+            $data['isTransactionDetail'] = $this->getIsTransactionDetail() ? 'true' : 'false';
         }
 
-        $securityHash = TamiHelper::generateJwkSignature($this->getMerchantPassword(), $data);
-
-        $data['securityHash'] = $securityHash;
+        $data['securityHash'] = TamiHelper::generateJwkSignature($this->getMerchantPassword(), $data);
 
         return $data;
     }
@@ -39,7 +46,7 @@ class RefundRequest extends RemoteAbstractRequest
     {
         $this->validateSettings();
 
-        $this->validate('transactionId', 'amount');
+        $this->validate('transactionId');
     }
 
     public function sendData($data)
@@ -51,8 +58,8 @@ class RefundRequest extends RemoteAbstractRequest
         return $this->createResponse($httpResponse);
     }
 
-    protected function createResponse($data): RefundResponse
+    protected function createResponse($data): QueryResponse
     {
-        return $this->response = new RefundResponse($this, $data);
+        return $this->response = new QueryResponse($this, $data);
     }
 }
