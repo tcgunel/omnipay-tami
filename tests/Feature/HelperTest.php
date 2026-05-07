@@ -107,11 +107,11 @@ class HelperTest extends TestCase
             'cardType' => 'CREDIT',
             'maskedNumber' => '482491******7014',
             'installmentCount' => 1,
-            'currency' => 'TRY',
-            'originalAmount' => 415,
+            'currencyCode' => 'TRY',
+            'txnAmount' => 415,
             'orderId' => 'order-123',
             'systemTime' => '2026-01-01T00:00:00.000',
-            'mdStatus' => '1',
+            'success' => '1',
         ];
 
         $callback['hashedData'] = TamiHelper::computeCallbackHash($callback, $secretKey);
@@ -120,6 +120,31 @@ class HelperTest extends TestCase
 
         $callback['hashedData'] = 'tampered';
         self::assertFalse(TamiHelper::verifyCallbackHash($callback, $secretKey));
+    }
+
+    public function test_verify_callback_hash_honors_hash_params_field()
+    {
+        $secretKey = 'placeholder-secret';
+
+        // hashParams orders fields differently than the default and includes
+        // a custom one Tami may add later. The helper must follow it verbatim.
+        $callback = [
+            'orderId' => 'order-123',
+            'success' => '1',
+            'cardOrganization' => 'VISA',
+            'maskedNumber' => '482491******7014',
+            'systemTime' => '2026-01-01T00:00:00.000',
+            'hashParams' => 'success+orderId+cardOrganization+maskedNumber+systemTime',
+        ];
+
+        $expected = base64_encode(hash_hmac(
+            'sha256',
+            '1' . 'order-123' . 'VISA' . '482491******7014' . '2026-01-01T00:00:00.000',
+            $secretKey,
+            true
+        ));
+
+        self::assertEquals($expected, TamiHelper::computeCallbackHash($callback, $secretKey));
     }
 
     public function test_verify_callback_hash_fails_on_missing_field()

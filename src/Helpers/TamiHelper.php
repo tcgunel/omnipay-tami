@@ -69,19 +69,28 @@ class TamiHelper
 
     /**
      * Compute the expected `hashedData` value for a 3DS callback payload.
+     *
+     * Tami includes a `hashParams` field describing the exact concatenation
+     * order it used. Honor it when present — the documentation's field list
+     * is out of date relative to production payloads (e.g. real callbacks
+     * use `currencyCode`/`txnAmount`/`success`, not `currency`/`originalAmount`/`status`).
      */
     public static function computeCallbackHash(array $callback, string $secretKey): string
     {
-        $data = ($callback['cardOrganization'] ?? $callback['cardOrg'] ?? '')
-            . ($callback['cardBrand'] ?? '')
-            . ($callback['cardType'] ?? '')
-            . ($callback['maskedNumber'] ?? '')
-            . ($callback['installmentCount'] ?? '')
-            . ($callback['currency'] ?? $callback['currencyCode'] ?? '')
-            . ($callback['originalAmount'] ?? $callback['txnAmount'] ?? '')
-            . ($callback['orderId'] ?? $callback['orderID'] ?? '')
-            . ($callback['systemTime'] ?? '')
-            . ($callback['status'] ?? $callback['mdStatus'] ?? '');
+        $defaultParams = 'cardOrganization+cardBrand+cardType+maskedNumber+installmentCount+currencyCode+txnAmount+orderId+systemTime+success';
+        $params = (string) ($callback['hashParams'] ?? $defaultParams);
+
+        $data = '';
+
+        foreach (explode('+', $params) as $field) {
+            $field = trim($field);
+
+            if ($field === '') {
+                continue;
+            }
+
+            $data .= (string) ($callback[$field] ?? '');
+        }
 
         return base64_encode(hash_hmac('sha256', $data, $secretKey, true));
     }
