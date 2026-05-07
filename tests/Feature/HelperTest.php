@@ -122,12 +122,40 @@ class HelperTest extends TestCase
         self::assertFalse(TamiHelper::verifyCallbackHash($callback, $secretKey));
     }
 
+    public function test_callback_hash_canonicalises_success_boolean()
+    {
+        $secretKey = 'placeholder-secret';
+
+        // Tami signs the boolean as "true"/"false" even when the wire
+        // payload sends "1"/"0", so the same hash must be produced for any
+        // representation of true.
+        $base = [
+            'success' => '1',
+            'orderId' => 'order-1',
+            'hashParams' => 'success+orderId',
+        ];
+
+        $hashStringOne = TamiHelper::computeCallbackHash($base, $secretKey);
+        $hashStringTrue = TamiHelper::computeCallbackHash(array_merge($base, ['success' => 'true']), $secretKey);
+        $hashBoolTrue = TamiHelper::computeCallbackHash(array_merge($base, ['success' => true]), $secretKey);
+        $hashIntOne = TamiHelper::computeCallbackHash(array_merge($base, ['success' => 1]), $secretKey);
+
+        self::assertEquals($hashStringOne, $hashStringTrue);
+        self::assertEquals($hashStringOne, $hashBoolTrue);
+        self::assertEquals($hashStringOne, $hashIntOne);
+
+        // Sanity: should explicitly sign "true", not "1".
+        $expected = base64_encode(hash_hmac('sha256', 'trueorder-1', $secretKey, true));
+        self::assertEquals($expected, $hashStringOne);
+    }
+
     public function test_verify_callback_hash_honors_hash_params_field()
     {
         $secretKey = 'placeholder-secret';
 
         // hashParams orders fields differently than the default and includes
         // a custom one Tami may add later. The helper must follow it verbatim.
+        // `success` is also canonicalised from "1" → "true" before hashing.
         $callback = [
             'orderId' => 'order-123',
             'success' => '1',
@@ -139,7 +167,7 @@ class HelperTest extends TestCase
 
         $expected = base64_encode(hash_hmac(
             'sha256',
-            '1' . 'order-123' . 'VISA' . '482491******7014' . '2026-01-01T00:00:00.000',
+            'true' . 'order-123' . 'VISA' . '482491******7014' . '2026-01-01T00:00:00.000',
             $secretKey,
             true
         ));

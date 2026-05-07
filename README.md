@@ -239,7 +239,7 @@ Tami's published docs at https://dev.tami.com.tr are out of date in several plac
 
 | Field | Docs | Production |
 |---|---|---|
-| `success` | string `"true"` / `"false"` | string `"1"` / `"0"` |
+| `success` | string `"true"` / `"false"` | string `"1"` / `"0"` on the wire — but Tami **signs the canonical "true"/"false" form** for `hashedData`, so the package canonicalises before HMAC |
 | `hashParams` | not documented | sent on every callback; explicit list of fields used to compute `hashedData` |
 | `mdErrorMessage` | not documented | sent on every callback (e.g. "Y-status/Challenge authentication via ACS") |
 | Hash field list | `cardOrg`, `currency`, `originalAmount`, `orderID`, `status` | `cardOrganization`, `currencyCode`, `txnAmount`, `orderId`, `success` |

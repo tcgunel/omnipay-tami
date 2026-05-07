@@ -74,6 +74,10 @@ class TamiHelper
      * order it used. Honor it when present — the documentation's field list
      * is out of date relative to production payloads (e.g. real callbacks
      * use `currencyCode`/`txnAmount`/`success`, not `currency`/`originalAmount`/`status`).
+     *
+     * For boolean-typed fields Tami signs the canonical "true"/"false" form
+     * even though the wire payload uses "1"/"0", so values are canonicalised
+     * before concatenation.
      */
     public static function computeCallbackHash(array $callback, string $secretKey): string
     {
@@ -89,10 +93,32 @@ class TamiHelper
                 continue;
             }
 
-            $data .= (string) ($callback[$field] ?? '');
+            $data .= self::canonicalCallbackValue($field, $callback[$field] ?? '');
         }
 
         return base64_encode(hash_hmac('sha256', $data, $secretKey, true));
+    }
+
+    /**
+     * Wire-to-hash value normaliser. Tami serialises booleans as "1"/"0" on
+     * the wire but signs them as "true"/"false". Add other field-specific
+     * coercions here if/when Tami diverges further.
+     *
+     * @param mixed $value
+     */
+    private static function canonicalCallbackValue(string $field, $value): string
+    {
+        if ($field === 'success') {
+            if ($value === true || $value === 1 || (string) $value === '1' || (string) $value === 'true') {
+                return 'true';
+            }
+
+            if ($value === false || $value === 0 || (string) $value === '0' || (string) $value === 'false') {
+                return 'false';
+            }
+        }
+
+        return (string) $value;
     }
 
     /**
